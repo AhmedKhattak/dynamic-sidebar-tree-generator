@@ -48,7 +48,7 @@ const MyUl = styled.ul`
   list-style-type: none;
   margin: 0;
   padding: 0;
-  border-left: 1px solid rgba(47, 56, 65, 1);
+
       margin-left:10px;`;
     } else {
       return `  cursor: pointer;
@@ -74,22 +74,22 @@ const MyLi = styled.li`
   line-height: 20px;
  
   font-weight: bold;
-
+  border-left: 1px solid rgba(47, 56, 65, 1);
 
 
 
       &::before {
         position: relative;
-    top: -14px;
-    height: 29px;
-    width: 12px;
-    color: white;
-    border-bottom: 1px solid rgba(47, 56, 65, 1);
-    content: "";
-    display: inline-block;
-    left: -8px;
+  top: -0.3em;
+height: 1em;
+  width: 20px;
+color: white;
+  border-bottom: 1px solid rgb(100, 100, 100);
+  content: "";
+  display: inline-block;
+  left: -7px;
 }
-  }
+  
   
   &:last-child {
     border-left: none;
@@ -123,7 +123,7 @@ const MyLi = styled.li`
     display: inline-block;
     left: -6px;
 }
-  }
+  
   
   &:last-child {
     border-left: none;
@@ -369,20 +369,23 @@ function TreeComponent({
         setSelectedNodeDepth(depth);
       }}
     >
-      <MyLi depth={depth} style={{ display: "flex", alignItems: "center" }}>
-        {depth === 0 && <LayerIcon />}
-        <div style={textStyle()}>{json.name}</div>
+      <MyLi depth={depth}>
+        <div style={{ display: "flex", alignItems: "center" }}>
+          {depth === 0 && <LayerIcon />}
+          <div style={textStyle()}>{json.name}</div>
+        </div>
+
+        {json?.children?.map((item, index) => (
+          <TreeComponent
+            key={index + item.name}
+            json={item}
+            searchInput={searchInput}
+            setSelectedNode={setSelectedNode}
+            setSelectedNodeDepth={setSelectedNodeDepth}
+            initialDepth={depth}
+          />
+        ))}
       </MyLi>
-      {json?.children?.map((item, index) => (
-        <TreeComponent
-          key={index + item.name}
-          json={item}
-          searchInput={searchInput}
-          setSelectedNode={setSelectedNode}
-          setSelectedNodeDepth={setSelectedNodeDepth}
-          initialDepth={depth}
-        />
-      ))}
     </MyUl>
   );
 }
