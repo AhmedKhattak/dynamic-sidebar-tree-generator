@@ -3,7 +3,7 @@ import React, { useEffect, useState, useRef } from "react";
 import styled from "styled-components";
 import { motion, AnimatePresence } from "framer-motion";
 
-const json = `{
+const initialJSON = `{
   "name": "Document",
   "children": [
     {
@@ -148,26 +148,13 @@ color: white;
 `;
 
 function App() {
-  const [jsonInput, setJsonInput] = useState(`
-  {
-    "name": "Document",
-    "children": [
-      {
-        "name": "Head",
-        "children": []
-      },
-      {
-        "name": "Body",
-   "children": []
-      }
-    ]
-  }`);
+  const [jsonInput, setJsonInput] = useState(initialJSON);
   const [isJsonValid, setIsJsonValid] = useState(true);
   const [searchInput, setSearchInput] = useState("");
   const [selectedNode, setSelectedNode] = useState(null);
   const [selectedNodeDepth, setSelectedNodeDepth] = useState(0);
 
-  const [json, setJson] = useState(null);
+  const [json, setJson] = useState();
 
   useEffect(() => {
     try {
