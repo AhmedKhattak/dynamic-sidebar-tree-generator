@@ -1,8 +1,9 @@
 import React, { useEffect, useState, useRef } from "react";
-// import style from "./App.module.css";
-import styled from "styled-components";
 
-const jsonbencho = `{
+import styled from "styled-components";
+import { motion, AnimatePresence } from "framer-motion";
+
+const json = `{
   "name": "Document",
   "children": [
     {
@@ -33,7 +34,7 @@ const jsonbencho = `{
   ]
 }`;
 
-const MyUl = styled.ul`
+const MyUl = styled(motion.ul)`
   ${(props) => {
     const depth = props.depth;
     if (depth === 0) {
@@ -46,22 +47,22 @@ const MyUl = styled.ul`
     } else if (depth === 1) {
       return `  cursor: pointer;
   list-style-type: none;
-  margin: 0;
+  margin: -1px;
   padding: 0;
-
-      margin-left:10px;`;
+      
+      margin-left:7px;`;
     } else {
       return `  cursor: pointer;
   list-style-type: none;
-  margin: 0;
+  margin: -6px;
   padding: 0;
   
-      margin-left:10px;`;
+      margin-left:7px;`;
     }
   }};
 `;
 
-const MyLi = styled.li`
+const MyLi = styled(motion.li)`
   ${(props) => {
     const depth = props.depth;
 
@@ -72,7 +73,7 @@ const MyLi = styled.li`
       margin: 0;
   padding: 0 7px;
   line-height: 20px;
- 
+ margin-left:10px;
   font-weight: bold;
   border-left: 1px solid rgba(47, 56, 65, 1);
 
@@ -82,9 +83,9 @@ const MyLi = styled.li`
         position: relative;
   top: -0.3em;
 height: 1em;
-  width: 20px;
+width:9px;
 color: white;
-  border-bottom: 1px solid rgb(100, 100, 100);
+  border-bottom: 1px solid rgba(47, 56, 65, 1);
   content: "";
   display: inline-block;
   left: -7px;
@@ -99,29 +100,33 @@ color: white;
 
 
   &:last-child:before {
+    position: relative;
+    top: -7px;
+  border-left: 1px solid rgba(47, 56, 65, 1);
+  left: -7px
   border-left: 1px solid rgba(47, 56, 65, 1);
 }`;
     } else {
       return `
       margin: 0;
   padding: 0 7px;
-  
-
+  line-height: 20px;
+ 
   font-weight: bold;
   border-left: 1px solid rgba(47, 56, 65, 1);
 
 
 
-    &::before {
-    position: relative;
-    top: -14px;
-    height: 29px;
-    width: 14px;
-    color: white;
-    border-bottom: 1px solid rgba(47, 56, 65, 1);
-    content: "";
-    display: inline-block;
-    left: -6px;
+      &::before {
+        position: relative;
+  top: -7px;
+height: 25px;
+width:9px;
+color: white;
+  border-bottom: 1px solid rgba(47, 56, 65, 1);
+  content: "";
+  display: inline-block;
+  left: -8px
 }
   
   
@@ -133,7 +138,10 @@ color: white;
 
 
   &:last-child:before {
+    position: relative;
+  top: -7px;
   border-left: 1px solid rgba(47, 56, 65, 1);
+  left: -7px
 }`;
     }
   }}
@@ -201,7 +209,8 @@ function App() {
           style={{
             flexBasis: 266,
             backgroundColor: "#171D24",
-
+            display: "flex",
+            flexDirection: "column",
             paddingLeft: 21,
             paddingRight: 21,
             paddingTop: 18,
@@ -224,14 +233,17 @@ function App() {
               marginBottom: 14,
             }}
           />
-
-          <TreeComponent
-            json={json}
-            searchInput={searchInput}
-            setSelectedNode={setSelectedNode}
-            setSelectedNodeDepth={setSelectedNodeDepth}
-            initialDepth={-1}
-          />
+          <div style={{ overflowY: "scroll", flex: 1 }}>
+            <TreeComponent
+              json={json}
+              searchInput={searchInput}
+              setSelectedNode={setSelectedNode}
+              setSelectedNodeDepth={setSelectedNodeDepth}
+              initialDepth={-1}
+              selectedNode={selectedNode}
+              selectedNodeDepth={selectedNodeDepth}
+            />
+          </div>
         </div>
 
         <div
@@ -256,7 +268,11 @@ function App() {
           <div style={{ flex: 1, marginTop: 9 }}>
             <textarea
               value={jsonInput}
-              onChange={(e) => setJsonInput(e.target.value)}
+              onChange={(e) => {
+                setJsonInput(e.target.value);
+                setSelectedNodeDepth(null);
+                setSelectedNode(null);
+              }}
               style={{
                 borderRadius: 4,
                 border: "none",
@@ -303,19 +319,27 @@ function App() {
   );
 }
 
+const variants = {
+  open: { rotate: 0 },
+  closed: { rotate: -90 },
+};
+
 function TreeComponent({
   json,
   searchInput,
   setSelectedNode,
   setSelectedNodeDepth,
   initialDepth,
+  selectedNodeDepth,
+  selectedNode,
 }) {
+  const [isOpen, setIsOpen] = useState(false);
   const [depth] = useState(initialDepth + 1);
   if (!json) {
     return null;
   }
 
-  const temp = json?.name.toLowerCase();
+  const temp = json?.name?.toLowerCase();
   if (searchInput !== "" && !temp.includes(searchInput) && depth !== 0) {
     return (
       <>
@@ -327,6 +351,8 @@ function TreeComponent({
             setSelectedNode={setSelectedNode}
             setSelectedNodeDepth={setSelectedNodeDepth}
             initialDepth={depth}
+            selectedNode={selectedNode}
+            selectedNodeDepth={selectedNodeDepth}
           />
         ))}
       </>
@@ -336,43 +362,54 @@ function TreeComponent({
   const textStyle = () => {
     if (depth === 0) {
       return {
-        color: "white",
+        color:
+          depth === selectedNodeDepth && selectedNode === json.name
+            ? "rgba(0, 135, 245, 1)"
+            : "white",
         fontFamily: "Roboto",
         fontSize: 12,
         marginLeft: 8,
       };
-    } else if (json?.children?.length > 0) {
+    } else if (depth === 1) {
       return {
-        color: "rgba(152, 171, 186, 1)",
+        color:
+          selectedNodeDepth && selectedNode === json.name
+            ? "rgba(0, 135, 245, 1)"
+            : "rgba(152, 171, 186, 1)",
         fontFamily: "Roboto",
         fontSize: 12,
-        marginLeft: 8,
       };
     } else {
       return {
-        color: "rgba(137, 156, 172, 1)",
+        color:
+          selectedNodeDepth && selectedNode === json.name
+            ? "rgba(0, 135, 245, 1)"
+            : "rgba(137, 156, 172, 1)",
         fontFamily: "Roboto",
         fontSize: 12,
         fontWeight: 300,
-        marginLeft: 8,
+        position: "relative",
+        top: -4,
+        left: -4,
       };
     }
   };
 
-  return (
-    <MyUl
-      depth={depth}
-      onClick={(e) => {
-        e.stopPropagation();
+  if (depth === 0 && json.children?.length > 0) {
+    return (
+      <MyUl
+        depth={depth}
+        onClick={(e) => {
+          e.stopPropagation();
 
-        setSelectedNode(json.name);
-        setSelectedNodeDepth(depth);
-      }}
-    >
-      <MyLi depth={depth}>
-        <div style={{ display: "flex", alignItems: "center" }}>
+          setSelectedNode(json.name);
+          setSelectedNodeDepth(depth);
+        }}
+      >
+        <div style={{ display: "inline-flex", alignItems: "center" }}>
           {depth === 0 && <LayerIcon />}
-          <div style={textStyle()}>{json.name}</div>
+
+          <span style={textStyle()}>{json.name}</span>
         </div>
 
         {json?.children?.map((item, index) => (
@@ -383,10 +420,109 @@ function TreeComponent({
             setSelectedNode={setSelectedNode}
             setSelectedNodeDepth={setSelectedNodeDepth}
             initialDepth={depth}
+            selectedNode={selectedNode}
+            selectedNodeDepth={selectedNodeDepth}
           />
         ))}
+      </MyUl>
+    );
+  }
+
+  if (json.children?.length > 0) {
+    return (
+      <MyLi
+        depth={depth}
+        onClick={(e) => {
+          e.stopPropagation();
+          setIsOpen((prev) => !prev);
+          setSelectedNode(json.name);
+          setSelectedNodeDepth(depth);
+        }}
+      >
+        <div style={{ display: "inline-flex", alignItems: "center" }}>
+          {depth === 0 && <LayerIcon />}
+          {depth > 0 && json.children?.length > 0 && (
+            <motion.svg
+              animate={isOpen ? "open" : "closed"}
+              variants={variants}
+              xmlns="http://www.w3.org/2000/svg"
+              width="5"
+              height="5"
+              viewBox="0 0 5 5"
+              fill="none"
+              style={{
+                left: -5,
+                top: -2,
+                position: "relative",
+              }}
+            >
+              <path
+                fill-rule="evenodd"
+                clip-rule="evenodd"
+                d="M2.60367 4.30376L0.558775 0.972884L4.64856 0.972884L2.60367 4.30376Z"
+                fill="#98ABBA"
+              ></path>
+            </motion.svg>
+          )}
+          <span style={textStyle()}>{json.name}</span>
+        </div>
+        <AnimatePresence>
+          {isOpen && (
+            <MyUl
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              depth={depth}
+            >
+              {json?.children?.map((item, index) => (
+                <TreeComponent
+                  key={index + item.name}
+                  json={item}
+                  searchInput={searchInput}
+                  setSelectedNode={setSelectedNode}
+                  setSelectedNodeDepth={setSelectedNodeDepth}
+                  initialDepth={depth}
+                  selectedNode={selectedNode}
+                  selectedNodeDepth={selectedNodeDepth}
+                />
+              ))}
+            </MyUl>
+          )}
+        </AnimatePresence>
+
+        {/* </MyUl> */}
       </MyLi>
-    </MyUl>
+    );
+  }
+
+  return (
+    <MyLi
+      depth={depth}
+      onClick={(e) => {
+        e.stopPropagation();
+        setSelectedNode(json.name);
+        setSelectedNodeDepth(depth);
+      }}
+    >
+      <div style={{ display: "inline-flex", alignItems: "center" }}>
+        {depth === 0 && <LayerIcon />}
+
+        <span style={textStyle()}>{json.name}</span>
+      </div>
+
+      {json?.children?.map((item, index) => (
+        <TreeComponent
+          key={index + item.name}
+          json={item}
+          searchInput={searchInput}
+          setSelectedNode={setSelectedNode}
+          setSelectedNodeDepth={setSelectedNodeDepth}
+          initialDepth={depth}
+          selectedNode={selectedNode}
+          selectedNodeDepth={selectedNodeDepth}
+        />
+      ))}
+    </MyLi>
   );
 }
 
